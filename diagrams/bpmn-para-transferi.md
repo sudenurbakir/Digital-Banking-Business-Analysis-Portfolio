@@ -1,89 +1,151 @@
-# BPMN - Para Transferi Süreci
+# BPMN - IBAN ile Para Transferi
 
 ## Amaç
 
-Bu diyagram, mobil bankacılık uygulamasındaki para transferi sürecinin uçtan uca iş akışını görselleştirmek amacıyla hazırlanmıştır.
+Bu doküman, dijital bankacılık uygulamasında IBAN ile para transferi sürecinin BPMN (Business Process Model and Notation) mantığına uygun olarak modellenmesini amaçlamaktadır.
+
+## Kapsam
+
+Bu süreç aşağıdaki adımları kapsamaktadır:
+
+- Para transferi talebinin oluşturulması
+- IBAN doğrulaması
+- Bakiye kontrolü
+- Güvenlik doğrulaması
+- Transfer işleminin gerçekleştirilmesi
+- Dekont oluşturulması
+- Kullanıcının bilgilendirilmesi
 
 ---
 
-## Süreç Akışı
+## Süreç Katılımcıları (Pools & Lanes)
+
+| Pool | Lane | Açıklama |
+|------|------|----------|
+| Müşteri | Banka Müşterisi | Para transferini başlatır. |
+| Banka Sistemi | Mobil Uygulama | Kullanıcı işlemlerini yönetir. |
+| Banka Sistemi | API | İş kurallarını uygular ve servisleri yönetir. |
+| Banka Sistemi | Core Banking | Hesap ve transfer işlemlerini gerçekleştirir. |
+| Banka Sistemi | Bildirim Servisi | Kullanıcıya işlem sonucunu bildirir. |
+
+---
+
+## BPMN Süreci
 
 ```mermaid
-flowchart LR
+flowchart TD
 
-A([Başlangıç])
+A((Başlangıç))
 
-B[Mobil Bankacılık Uygulamasına Giriş Yap]
+B[Kullanıcı Para Transferi Ekranını Açar]
 
-C[Para Transferi Menüsünü Aç]
+C[IBAN Bilgisini Girer]
 
-D[Transfer Türünü Seç]
+D[Transfer Tutarını Girer]
 
-E[IBAN veya Kayıtlı Alıcı Seç]
+E{IBAN Geçerli mi?}
 
-F[Transfer Tutarını Gir]
+F[Hata Mesajı]
 
-G[İşlem Özetini Görüntüle]
+G{Bakiye Yeterli mi?}
 
-H{Bilgiler Doğru mu?}
+H[Yetersiz Bakiye]
 
-I[İşlemi Düzenle]
+I[Güvenlik Doğrulaması]
 
-J[Güvenlik Doğrulaması]
+J{Doğrulama Başarılı mı?}
 
-K{Doğrulama Başarılı mı?}
+K[Transferi Gerçekleştir]
 
-L[Transferi Gerçekleştir]
+L[Dekont Oluştur]
 
-M[Referans Numarasını Oluştur]
+M[SMS / Push Bildirimi Gönder]
 
-N[Başarı Mesajını Göster]
-
-O([Bitiş])
+N((Süreç Sonu))
 
 A --> B
 B --> C
 C --> D
 D --> E
-E --> F
-F --> G
-G --> H
 
-H -- Hayır --> I
-I --> E
+E -- Hayır --> F
+F --> C
 
-H -- Evet --> J
+E -- Evet --> G
 
-J --> K
+G -- Hayır --> H
+H --> D
 
-K -- Hayır --> G
+G -- Evet --> I
 
-K -- Evet --> L
+I --> J
 
+J -- Hayır --> I
+
+J -- Evet --> K
+
+K --> L
 L --> M
 M --> N
-N --> O
 ```
 
 ---
 
 ## Süreç Açıklaması
 
-1. Kullanıcı mobil bankacılık uygulamasına giriş yapar.
-2. Para transferi ekranını açar.
-3. Transfer türünü belirler.
-4. Alıcı bilgilerini girer veya kayıtlı alıcı seçer.
-5. Transfer tutarını girer.
-6. İşlem özetini kontrol eder.
-7. Güvenlik doğrulamasını tamamlar.
-8. Sistem transfer işlemini gerçekleştirir.
-9. Referans numarası oluşturulur.
-10. İşlem başarıyla tamamlanır.
+1. Kullanıcı para transferi ekranını açar.
+2. IBAN ve transfer tutarını girer.
+3. Sistem IBAN bilgisini doğrular.
+4. Hesap bakiyesi kontrol edilir.
+5. Kullanıcının güvenlik doğrulaması tamamlanır.
+6. Transfer işlemi gerçekleştirilir.
+7. Sistem dekont oluşturur.
+8. Kullanıcı SMS veya Push Bildirimi ile bilgilendirilir.
+9. Süreç tamamlanır.
 
 ---
 
-## Notlar
+## Karar Noktaları
 
-- Bu diyagram hedeflenen (To-Be) süreci temsil etmektedir.
-- Süreç, kullanıcı deneyimini iyileştirmek amacıyla tasarlanmıştır.
-- İş kuralları ve fonksiyonel gereksinimler dikkate alınarak hazırlanmıştır.
+### Gateway-01
+
+**IBAN Geçerli mi?**
+
+- Evet → Süreç devam eder.
+- Hayır → Kullanıcıdan IBAN bilgisini düzeltmesi istenir.
+
+---
+
+### Gateway-02
+
+**Bakiye Yeterli mi?**
+
+- Evet → Güvenlik doğrulamasına geçilir.
+- Hayır → Kullanıcıya yetersiz bakiye bilgisi gösterilir.
+
+---
+
+### Gateway-03
+
+**Güvenlik Doğrulaması Başarılı mı?**
+
+- Evet → Transfer gerçekleştirilir.
+- Hayır → Kullanıcı doğrulamayı tekrar yapar.
+
+---
+
+## Başlangıç Olayı (Start Event)
+
+Müşteri para transferi işlemini başlatır.
+
+---
+
+## Bitiş Olayı (End Event)
+
+Transfer başarıyla tamamlanır ve kullanıcı bilgilendirilir.
+
+---
+
+## Sonuç
+
+Bu BPMN modeli, IBAN ile para transferi sürecinin iş akışını BPMN mantığına uygun şekilde göstermektedir. Süreç; iş analistleri, yazılım geliştiriciler ve test ekipleri için ortak bir referans niteliğindedir.
