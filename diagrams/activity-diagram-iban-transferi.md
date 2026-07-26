@@ -2,84 +2,123 @@
 
 ## Amaç
 
-Bu diyagram, kullanıcının IBAN ile para transferi gerçekleştirme sürecini adım adım göstermektedir.
+Bu doküman, mobil bankacılık uygulamasında **IBAN ile para transferi** sürecinin kullanıcı ve sistem açısından adım adım nasıl ilerlediğini göstermek amacıyla hazırlanmıştır.
+
+## Kapsam
+
+Bu diyagram aşağıdaki süreci kapsamaktadır:
+
+- Para transferi ekranının açılması
+- IBAN bilgisinin girilmesi
+- Transfer tutarının girilmesi
+- İşlem özetinin görüntülenmesi
+- Güvenlik doğrulaması
+- Para transferinin gerçekleştirilmesi
+- İşlem sonucunun kullanıcıya gösterilmesi
+
+## Ön Koşullar
+
+- Kullanıcı sisteme giriş yapmış olmalıdır.
+- Kullanıcının aktif bir hesabı bulunmalıdır.
+- İnternet bağlantısı aktif olmalıdır.
 
 ---
+
+## Activity Diagram
 
 ```mermaid
 flowchart TD
 
 A([Başlangıç])
 
-B[Uygulamaya Giriş Yap]
+B[Para Transferi Menüsünü Aç]
 
-C[Para Transferi Menüsünü Aç]
+C[IBAN Bilgisini Gir]
 
-D[Transfer Türünü Seç]
+D[Transfer Tutarını Gir]
 
-E[IBAN Bilgisini Gir]
+E[İşlem Özetini Görüntüle]
 
-F[Tutar Bilgisini Gir]
+F{Bilgiler Doğru mu?}
 
-G[İşlem Özetini Görüntüle]
+G[Bilgileri Düzenle]
 
-H{Bilgiler Doğru mu?}
+H[Güvenlik Doğrulaması]
 
-I[Bilgileri Düzenle]
+I{Doğrulama Başarılı mı?}
 
-J[Güvenlik Doğrulaması]
+J[Transferi Gerçekleştir]
 
-K{Doğrulama Başarılı mı?}
+K[Referans Numarası Oluştur]
 
-L[Transferi Gerçekleştir]
+L[Başarı Mesajını Göster]
 
-M[Referans Numarası Oluştur]
-
-N[Başarı Mesajını Göster]
-
-O([Bitiş])
+M([Bitiş])
 
 A --> B
 B --> C
 C --> D
 D --> E
 E --> F
-F --> G
 
-G --> H
+F -- Hayır --> G
+G --> C
 
-H -- Hayır --> I
-I --> E
+F -- Evet --> H
 
-H -- Evet --> J
+H --> I
+
+I -- Hayır --> H
+I -- Evet --> J
 
 J --> K
-
-K -- Hayır --> G
-K -- Evet --> L
-
+K --> L
 L --> M
-M --> N
-N --> O
 ```
 
 ---
 
 ## Süreç Açıklaması
 
-1. Kullanıcı uygulamaya giriş yapar.
-2. Para transferi ekranını açar.
-3. Transfer türünü seçer.
-4. Alıcıya ait IBAN bilgisini girer.
-5. Transfer tutarını girer.
-6. İşlem özetini kontrol eder.
-7. Bilgiler doğruysa güvenlik doğrulamasına geçilir.
-8. Güvenlik doğrulaması başarılı olursa transfer gerçekleştirilir.
-9. Sistem referans numarası oluşturur.
-10. Kullanıcıya işlem sonucu gösterilir.
+1. Kullanıcı para transferi ekranını açar.
+2. Alıcıya ait IBAN bilgisini girer.
+3. Transfer tutarını belirler.
+4. İşlem özeti ekranda görüntülenir.
+5. Kullanıcı bilgileri kontrol eder.
+6. Bilgiler doğruysa güvenlik doğrulamasına geçilir.
+7. Güvenlik doğrulaması başarılı olursa transfer gerçekleştirilir.
+8. Sistem referans numarası oluşturur.
+9. Kullanıcıya başarılı işlem mesajı gösterilir.
 
 ---
 
-## Not
+## Alternatif Akışlar
 
-Bu diyagram, yalnızca **IBAN ile para transferi** senaryosunu göstermektedir. Kayıtlı alıcı veya QR Kod ile transfer senaryoları için ayrı Activity Diagram'ları hazırlanabilir.
+### AF-01 – Bilgilerin Düzenlenmesi
+
+Kullanıcı işlem özeti ekranında bilgilerin hatalı olduğunu fark ederse IBAN veya tutar bilgisini güncelleyebilir.
+
+### AF-02 – Güvenlik Doğrulaması Başarısız
+
+Doğrulama başarısız olursa kullanıcıdan tekrar doğrulama yapması istenir.
+
+---
+
+## Son Koşullar
+
+Başarılı senaryoda:
+
+- Para transferi gerçekleştirilmiştir.
+- Referans numarası oluşturulmuştur.
+- İşlem geçmişine kayıt eklenmiştir.
+
+Başarısız senaryoda:
+
+- İşlem tamamlanmaz.
+- Kullanıcı uygun hata mesajı ile bilgilendirilir.
+
+---
+
+## Sonuç
+
+Bu Activity Diagram, IBAN ile para transferi sürecinin adım adım iş akışını göstermektedir. Doküman, geliştirme, test ve iş analizi süreçlerinde referans olarak kullanılmak üzere hazırlanmıştır.
